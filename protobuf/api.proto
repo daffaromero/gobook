@@ -1,0 +1,214 @@
+syntax = "proto3";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/daffaromero/services/common/grpc-api";
+
+service BookService {
+  rpc GetBook(GetBookRequest) returns (GetBookResponse);
+  rpc ListBooks(ListBooksRequest) returns (ListBooksResponse);
+  rpc CreateBook(CreateBookRequest) returns (CreateBookResponse);
+  rpc UpdateBook(UpdateBookRequest) returns (UpdateBookResponse);
+  rpc DeleteBook(DeleteBookRequest) returns (DeleteBookResponse);
+}
+
+message GetBookRequest {
+  string book_id = 1;
+}
+
+message GetBookResponse {
+  Book book = 1;
+}
+
+message ListBooksRequest {
+  Pagination pagination = 1;
+  Sorting sorting = 2;
+  string search = 3;
+}
+
+message ListBooksResponse {
+  repeated Book books = 1;
+}
+
+message CreateBookRequest {
+  Book book = 1;
+}
+
+message CreateBookResponse {
+  Book book = 1;
+}
+
+message UpdateBookRequest {
+  Book book = 1;
+}
+
+message UpdateBookResponse {
+  Book book = 1;
+}
+
+message DeleteBookRequest {
+  string book_id = 1;
+}
+
+message DeleteBookResponse {
+  bool success = 1;
+}
+
+message Book {
+  string id = 1;
+  string title = 2;
+  string author = 3;
+  google.protobuf.Timestamp published_date = 4;
+  string category_id = 5;
+}
+
+service BookCategoryService {
+  rpc GetCategory(GetCategoryRequest) returns (GetCategoryResponse);
+  rpc ListCategories(ListCategoriesRequest) returns (ListCategoriesResponse);
+  rpc CreateCategory(CreateCategoryRequest) returns (CreateCategoryResponse);
+  rpc UpdateCategory(UpdateCategoryRequest) returns (UpdateCategoryResponse);
+  rpc DeleteCategory(DeleteCategoryRequest) returns (DeleteCategoryResponse);
+}
+
+message GetCategoryRequest {
+  string category_id = 1;
+}
+
+message GetCategoryResponse {
+  BookCategory category = 1;
+}
+
+message ListCategoriesRequest {
+  Pagination pagination = 1;
+  Sorting sorting = 2;
+  string search = 3;
+}
+
+message ListCategoriesResponse {
+  repeated BookCategory categories = 1;
+}
+
+message CreateCategoryRequest {
+  BookCategory category = 1;
+}
+
+message CreateCategoryResponse {
+  BookCategory category = 1;
+}
+
+message UpdateCategoryRequest {
+  BookCategory category = 1;
+}
+
+message UpdateCategoryResponse {
+  BookCategory category = 1;
+}
+
+message DeleteCategoryRequest {
+  string category_id = 1;
+}
+
+message DeleteCategoryResponse {
+  bool success = 1;
+}
+
+message BookCategory {
+  string id = 1;
+  string name = 2;
+}
+
+service UserService {
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+  rpc AuthUser(AuthUserRequest) returns (AuthUserResponse);
+  rpc GenerateJWT(GenerateJWTRequest) returns (GenerateJWTResponse);
+  rpc ValidateJWT(ValidateJWTRequest) returns (ValidateJWTResponse);
+}
+
+message GetUserRequest {
+  string user_id = 1;
+}
+
+message GetUserResponse {
+  User user = 1;
+}
+
+message ListUsersRequest {
+  Pagination pagination = 1;
+  Sorting sorting = 2;
+  string search = 3;
+}
+
+message ListUsersResponse {
+  repeated User users = 1;
+}
+
+message CreateUserRequest {
+  User user = 1;
+}
+
+message CreateUserResponse {
+  User user = 1;
+}
+
+message UpdateUserRequest {
+  User user = 1;
+}
+
+message UpdateUserResponse {
+  User user = 1;
+}
+
+message DeleteUserRequest {
+  string user_id = 1;
+}
+
+message DeleteUserResponse {
+  bool success = 1;
+}
+
+message AuthUserRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message AuthUserResponse {
+  string token = 1;
+}
+
+message GenerateJWTRequest {
+  string user_id = 1;
+}
+
+message GenerateJWTResponse {
+  string token = 1;
+}
+
+message ValidateJWTRequest {
+  string token = 1;
+}
+
+message ValidateJWTResponse {
+  bool valid = 1;
+  string user_id = 2;
+}
+
+message User {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  string password = 4;
+}
+
+message Pagination {
+  int32 page = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
+message Sorting {
+  string order_by = 1;
+  bool is_reversed = 2;
+}
