@@ -59,6 +59,10 @@ message Book {
   string author = 3;
   google.protobuf.Timestamp published_date = 4;
   string category_id = 5;
+  string description = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+  google.protobuf.Timestamp deleted_at = 9;
 }
 
 service BookCategoryService {
@@ -114,6 +118,10 @@ message DeleteCategoryResponse {
 message BookCategory {
   string id = 1;
   string name = 2;
+  string description = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+  google.protobuf.Timestamp deleted_at = 6;
 }
 
 service UserService {
@@ -200,6 +208,10 @@ message User {
   string username = 2;
   string email = 3;
   string password = 4;
+  string role = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+  google.protobuf.Timestamp deleted_at = 8;
 }
 
 message Pagination {
