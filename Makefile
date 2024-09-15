@@ -9,6 +9,6 @@ run-users:
 
 gen-api:
 	@protoc \
-    --proto_path=protobuf "protobuf/api.proto" \
+    --proto_path=protobuf "services/common/grpc-api/api.proto" \
     --go_out=services/common/grpc-api --go_opt=paths=source_relative \
     --go-grpc_out=services/common/grpc-api --go-grpc_opt=paths=source_relative
