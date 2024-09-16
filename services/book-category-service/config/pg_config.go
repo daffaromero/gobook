@@ -14,77 +14,51 @@ import (
 	"github.com/daffaromero/gobook/services/common/utils"
 )
 
-type DBConfig struct {
-	Host            string
-	Port            string
-	Username        string
-	Password        string
-	DBName          string
-	MinConns        int32
-	MaxConns        int32
-	TimeOutDuration time.Duration
-}
+var (
+	host               = utils.GetEnv("DB_HOST")
+	port               = utils.GetEnv("DB_PORT")
+	username           = utils.GetEnv("DB_USERNAME")
+	password           = utils.GetEnv("DB_PASSWORD")
+	dbName             = utils.GetEnv("DB_NAME")
+	minConns           = utils.GetEnv("DB_MIN_CONNS")
+	maxConns           = utils.GetEnv("DB_MAX_CONNS")
+	TimeOutDuration, _ = strconv.Atoi(utils.GetEnv("DB_CONNECTION_TIMEOUT"))
+)
 
-func loadDBConfig() (*DBConfig, error) {
-	minConns, err := strconv.Atoi(utils.GetEnv("DB_MIN_CONNS"))
-	if err != nil {
-		return nil, fmt.Errorf("invalid DB_MIN_CONNS: %w", err)
-	}
-
-	maxConns, err := strconv.Atoi(utils.GetEnv("DB_MAX_CONNS"))
-	if err != nil {
-		return nil, fmt.Errorf("invalid DB_MAX_CONNS: %w", err)
-	}
-
-	timeoutDuration, err := strconv.Atoi(utils.GetEnv("DB_CONNECTION_TIMEOUT"))
-	if err != nil {
-		return nil, fmt.Errorf("invalid DB_CONNECTION_TIMEOUT: %w", err)
-	}
-
-	return &DBConfig{
-		Host:            utils.GetEnv("DB_HOST"),
-		Port:            utils.GetEnv("DB_PORT"),
-		Username:        utils.GetEnv("DB_USERNAME"),
-		Password:        utils.GetEnv("DB_PASSWORD"),
-		DBName:          utils.GetEnv("DB_NAME"),
-		MinConns:        int32(minConns),
-		MaxConns:        int32(maxConns),
-		TimeOutDuration: time.Duration(timeoutDuration) * time.Second,
-	}, nil
-}
-
-func NewPostgresDatabase() (*pgxpool.Pool, error) {
+func NewPostgresDatabase() *pgxpool.Pool {
 	logger := logs.New("database_connection")
-
-	dbConfig, err := loadDBConfig()
-	if err != nil {
-		return nil, fmt.Errorf("failed to load database configuration: %w", err)
-	}
-
-	dsn := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s", dbConfig.Username, dbConfig.Password, dbConfig.Host, dbConfig.Port, dbConfig.DBName)
+	dsn := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s", username, password, host, port, dbName)
 
 	poolConfig, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
 		logger.Error("Failed to parse configuration dsn " + dsn)
 	}
 
-	poolConfig.MinConns = dbConfig.MinConns
-	poolConfig.MaxConns = dbConfig.MaxConns
+	minConnsInt, err := strconv.Atoi(minConns)
+	if err != nil {
+		logger.Error("DB_MIN_CONNS expected to be integer minimum connections " + minConns)
+	}
+	maxConnsInt, err := strconv.Atoi(maxConns)
+	if err != nil {
+		logger.Error("DB_MAX_CONNS expected to be integer maximum connections" + maxConns)
+	}
+
+	poolConfig.MinConns = int32(minConnsInt)
+	poolConfig.MaxConns = int32(maxConnsInt)
 	poolConfig.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeDescribeExec
 
-	ctx, cancel := context.WithTimeout(context.Background(), dbConfig.TimeOutDuration)
-	defer cancel()
-
-	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)
+	pool, err := pgxpool.NewWithConfig(context.Background(), poolConfig)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create connection pool: %w", err)
+		logger.Error("Failed to apply pool configuration dsn " + dsn)
 	}
 
-	if err := pool.Ping(ctx); err != nil {
-		return nil, fmt.Errorf("failed to ping database: %w", err)
+	c, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := pool.Ping(c); err != nil {
+		logger.Error(err)
 	}
 
-	logger.Info("Database connected dsn " + dsn)
+	logger.Log("Database connected on " + dsn)
 
-	return pool, nil
+	return pool
 }

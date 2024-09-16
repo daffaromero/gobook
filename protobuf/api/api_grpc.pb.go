@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v5.27.2
-// source: api.proto
+// source: api/api.proto
 
 package grpc_api
 
@@ -245,7 +245,7 @@ var BookService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "api.proto",
+	Metadata: "api/api.proto",
 }
 
 // BookCategoryServiceClient is the client API for BookCategoryService service.
@@ -475,7 +475,7 @@ var BookCategoryService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "api.proto",
+	Metadata: "api/api.proto",
 }
 
 // UserServiceClient is the client API for UserService service.
@@ -813,5 +813,5 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "api.proto",
+	Metadata: "api/api.proto",
 }
