@@ -85,17 +85,15 @@ func (q *categoryQuery) CreateCategory(ctx context.Context, tx pgx.Tx, req *api.
 	createdAt := req.Category.CreatedAt.AsTime()
 	updatedAt := req.Category.UpdatedAt.AsTime()
 
-	err := tx.QueryRow(ctx, query, req.Category.Id, req.Category.Name, req.Category.Description, createdAt, updatedAt).Scan(&req.Category.Id, &req.Category.Name, &req.Category.Description)
+	var createdCategory api.BookCategory
+
+	err := tx.QueryRow(ctx, query, req.Category.Id, req.Category.Name, req.Category.Description, createdAt, updatedAt).Scan(&createdCategory.Id, &createdCategory.Name, &createdCategory.Description)
 	if err != nil {
 		return nil, fmt.Errorf("failed to insert category: %w", err)
 	}
 
 	return &api.CreateCategoryResponse{
-		Category: &api.BookCategory{
-			Id:          req.Category.Id,
-			Name:        req.Category.Name,
-			Description: req.Category.Description,
-		},
+		Category: &createdCategory,
 	}, nil
 }
 
@@ -144,6 +142,9 @@ func (q *categoryQuery) DeleteCategory(ctx context.Context, tx pgx.Tx, req *api.
 
 	_, err := tx.Exec(ctx, query, req.CategoryId, time.Now())
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, fmt.Errorf("category with ID %s not found", req.CategoryId)
+		}
 		return nil, fmt.Errorf("failed to delete category: %w", err)
 	}
 
