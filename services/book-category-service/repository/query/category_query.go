@@ -33,7 +33,7 @@ func (q *categoryQuery) GetCategory(ctx context.Context, req *api.GetCategoryReq
 	if req == nil || req.CategoryId == "" {
 		return nil, errors.New("category ID cannot be empty")
 	}
-	query := `SELECT id, name, description FROM book_categories WHERE id = $1`
+	query := `SELECT id, name, description FROM book_categories WHERE id = $1 AND deleted_at IS NULL`
 
 	row := q.db.QueryRow(ctx, query, req.CategoryId)
 
