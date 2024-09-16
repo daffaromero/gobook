@@ -67,7 +67,7 @@ func (r *categoryRepository) CreateCategory(ctx context.Context, req *api.Create
 		return err
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create category: %w", err)
 	}
 	return category, nil
 }
@@ -87,15 +87,15 @@ func (r *categoryRepository) UpdateCategory(ctx context.Context, req *api.Update
 }
 
 func (r *categoryRepository) DeleteCategory(ctx context.Context, req *api.DeleteCategoryRequest) (*api.DeleteCategoryResponse, error) {
-	var category *api.DeleteCategoryResponse
+	var res *api.DeleteCategoryResponse
 
 	err := r.db.WithTx(ctx, func(tx pgx.Tx) error {
 		var err error
-		category, err = r.categoryQuery.DeleteCategory(ctx, tx, req)
+		res, err = r.categoryQuery.DeleteCategory(ctx, tx, req)
 		return err
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete category: %w", err)
 	}
-	return category, nil
+	return res, nil
 }

@@ -76,7 +76,7 @@ func (c *categoryController) CreateCategory(ctx fiber.Ctx) error {
 	}
 
 	if req.Category == nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Category is required"})
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "category is required"})
 	}
 
 	name := req.Category.Name
@@ -97,13 +97,12 @@ func (c *categoryController) UpdateCategory(ctx fiber.Ctx) error {
 	}
 
 	var req api.UpdateCategoryRequest
-
 	if err := ctx.Bind().Body(&req); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	if req.Category == nil {
-		req.Category = &api.BookCategory{}
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "category cannot be empty"})
 	}
 	req.Category.Id = id
 

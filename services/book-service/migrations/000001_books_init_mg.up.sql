@@ -2,7 +2,6 @@ CREATE TABLE books (
   "id" uuid PRIMARY KEY,
   "title" VARCHAR(255) NOT NULL,
   "author" VARCHAR(255) NOT NULL,
-  "published_date" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
   "category_id" uuid,
   "description" TEXT DEFAULT '-',
   "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,

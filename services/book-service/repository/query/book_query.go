@@ -33,17 +33,17 @@ func (q *bookQuery) GetBook(ctx context.Context, req *api.GetBookRequest) (*api.
 	if req == nil || req.BookId == "" {
 		return nil, errors.New("book ID cannot be empty")
 	}
-	query := `SELECT id, title, author, category_id, description, published_date FROM books WHERE id = $1 AND deleted_at IS NULL`
+	query := `SELECT id, title, author, category_id, description FROM books WHERE id = $1 AND deleted_at IS NULL`
 
 	row := q.db.QueryRow(ctx, query, req.BookId)
 
 	var book api.Book
-	err := row.Scan(&book.Id, &book.Title, &book.Author, &book.CategoryId, &book.Description, &book.PublishedDate)
+	err := row.Scan(&book.Id, &book.Title, &book.Author, &book.CategoryId, &book.Description)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, fmt.Errorf("book with ID %s not found", req.BookId)
 		}
-		return nil, fmt.Errorf("failed to scan book: %w", err)
+		return nil, err
 	}
 
 	return &api.GetBookResponse{
@@ -52,7 +52,7 @@ func (q *bookQuery) GetBook(ctx context.Context, req *api.GetBookRequest) (*api.
 }
 
 func (q *bookQuery) ListBooks(ctx context.Context, req *api.ListBooksRequest) (*api.ListBooksResponse, error) {
-	query := `SELECT id, title, author, category_id, description, published_date FROM books WHERE deleted_at IS NULL`
+	query := `SELECT id, title, author, category_id, description FROM books WHERE deleted_at IS NULL`
 
 	rows, err := q.db.Query(ctx, query)
 	if err != nil {
@@ -63,9 +63,9 @@ func (q *bookQuery) ListBooks(ctx context.Context, req *api.ListBooksRequest) (*
 	var books []*api.Book
 	for rows.Next() {
 		var book api.Book
-		err := rows.Scan(&book.Id, &book.Title, &book.Author, &book.CategoryId, &book.Description, &book.PublishedDate)
+		err := rows.Scan(&book.Id, &book.Title, &book.Author, &book.CategoryId, &book.Description)
 		if err != nil {
-			return nil, fmt.Errorf("failed to scan book: %w", err)
+			return nil, err
 		}
 		books = append(books, &book)
 	}
@@ -79,16 +79,16 @@ func (q *bookQuery) CreateBook(ctx context.Context, tx pgx.Tx, req *api.CreateBo
 	if req == nil || req.Book == nil {
 		return nil, errors.New("book cannot be empty")
 	}
-	query := `INSERT INTO books (id, title, author, category_id, description, published_date) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, title, author, category_id, description, published_date`
+	query := `INSERT INTO books (id, title, author, category_id, description, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, title, author, category_id, description`
 
 	createdAt := req.Book.CreatedAt.AsTime()
 	updatedAt := req.Book.UpdatedAt.AsTime()
 
 	var createdBook api.Book
 
-	err := tx.QueryRow(ctx, query, req.Book.Id, req.Book.Title, req.Book.Author, req.Book.CategoryId, req.Book.Description, req.Book.PublishedDate, createdAt, updatedAt).Scan(&createdBook.Id, &createdBook.Title, &createdBook.Author, &createdBook.CategoryId, &createdBook.Description, &createdBook.PublishedDate)
+	err := tx.QueryRow(ctx, query, req.Book.Id, req.Book.Title, req.Book.Author, req.Book.CategoryId, req.Book.Description, createdAt, updatedAt).Scan(&createdBook.Id, &createdBook.Title, &createdBook.Author, &createdBook.CategoryId, &createdBook.Description)
 	if err != nil {
-		return nil, fmt.Errorf("failed to insert book: %w", err)
+		return nil, err
 	}
 
 	return &api.CreateBookResponse{
@@ -102,13 +102,12 @@ func (q *bookQuery) UpdateBook(ctx context.Context, tx pgx.Tx, req *api.UpdateBo
 	}
 	query := `UPDATE books 
 		SET 
-			title = COALESCE($2, name), 
+			title = COALESCE($2, title), 
 			author = COALESCE($3, author), 
 			category_id = COALESCE($4, category_id), 
 			description = COALESCE($5, description), 
-			published_date = COALESCE($6, published_date),
-			updated_at = $7
-		WHERE id = $1 AND deleted_at IS NULL RETURNING id, title, author, category_id, description, published_date`
+			updated_at = $6
+		WHERE id = $1 AND deleted_at IS NULL RETURNING id, title, author, category_id, description`
 
 	updatedAt := time.Now()
 	if req.Book.UpdatedAt != nil {
@@ -117,9 +116,9 @@ func (q *bookQuery) UpdateBook(ctx context.Context, tx pgx.Tx, req *api.UpdateBo
 
 	var updatedBook api.Book
 
-	err := tx.QueryRow(ctx, query, req.Book.Id, req.Book.Title, req.Book.Author, req.Book.CategoryId, req.Book.Description, req.Book.PublishedDate, updatedAt).Scan(&updatedBook.Id, &updatedBook.Title, &updatedBook.Author, &updatedBook.CategoryId, &updatedBook.Description, &updatedBook.PublishedDate)
+	err := tx.QueryRow(ctx, query, req.Book.Id, req.Book.Title, req.Book.Author, req.Book.CategoryId, req.Book.Description, updatedAt).Scan(&updatedBook.Id, &updatedBook.Title, &updatedBook.Author, &updatedBook.CategoryId, &updatedBook.Description)
 	if err != nil {
-		return nil, fmt.Errorf("failed to update book: %w", err)
+		return nil, err
 	}
 
 	return &api.UpdateBookResponse{
@@ -139,7 +138,7 @@ func (q *bookQuery) DeleteBook(ctx context.Context, tx pgx.Tx, req *api.DeleteBo
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, fmt.Errorf("book with ID %s not found", req.BookId)
 		}
-		return nil, fmt.Errorf("failed to delete book: %w", err)
+		return nil, err
 	}
 
 	return &api.DeleteBookResponse{
