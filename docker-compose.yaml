@@ -1,0 +1,118 @@
+version: "3.9"
+
+services:
+  consul:
+    image: hashicorp/consul:latest
+    ports:
+      - "8500:8500"
+    command: "agent -dev -client=0.0.0.0"
+
+  book-service:
+    build:
+      context: ../gobook
+      dockerfile: ./services/book-service/Dockerfile
+    ports:
+      - "8001:8001"
+    depends_on:
+      - books-db
+      - consul
+    environment:
+      - DB_HOST=books-db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=books
+      - CONSUL_ADDRESS=consul:8500
+    networks:
+      - backend
+
+  book-category-service:
+    build:
+      context: ../gobook
+      dockerfile: ./services/book-category-service/Dockerfile
+
+    ports:
+      - "50051:50051"
+      - "8000:8000"
+    depends_on:
+      - book-cats-db
+      - consul
+    environment:
+      - DB_HOST=book-cats-db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_NAME=book-cats
+      - CONSUL_ADDRESS=consul:8500
+    networks:
+      - backend
+
+  # user-service:
+  #   build:
+  #     context: ./services/user-service
+  #   ports:
+  #     - "9090:9090"
+  #     - "8002:8002"
+  #   depends_on:
+  #     - users-db
+  #     - consul
+  #   environment:
+  #     - DB_HOST=users-db
+  #     - DB_PORT=5432
+  #     - DB_USER=postgres
+  #     - DB_PASSWORD=password
+  #     - DB_NAME=users
+  #     - CONSUL_ADDRESS=consul:8500
+  #   networks:
+  #     - backend
+
+  books-db:
+    image: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: books
+    ports:
+      - "5433:5432"
+    volumes:
+      - books-db-data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  book-cats-db:
+    image: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: book-cats
+    ports:
+      - "5434:5432"
+    volumes:
+      - book-cats-db-data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  # users-db:
+  #   image: postgres
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: password
+  #     POSTGRES_DB: users
+  #   ports:
+  #     - "5435:5432"
+  #   volumes:
+  #     - users-db-data:/var/lib/postgresql/data
+  #   networks:
+  #     - backend
+
+volumes:
+  books-db-data:
+  book-cats-db-data:
+  # users-db-data:
+
+networks:
+  backend:
+    driver: bridge
