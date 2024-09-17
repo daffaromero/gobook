@@ -10,6 +10,5 @@ RUN chmod +x /main
 FROM gcr.io/distroless/static-debian12
 WORKDIR /app
 COPY --from=build /main /app/main
-RUN chmod +x /app/main
 EXPOSE 8001
 ENTRYPOINT ["/app/main"]

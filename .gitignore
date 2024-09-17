@@ -21,9 +21,5 @@
 go.work
 go.work.sum
 
-# env files
-.env
-*/.env
-
 # VSCode Settings
 **/.vscode/
